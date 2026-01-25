@@ -45,7 +45,7 @@ function App() {
             const [patentHits, organismHits] = await Promise.all([patentJobPromise, organismJobPromise]);
 
             // Step 3: Synthesis
-            const universalRisk = calculateUniversalRisk(patentHits, organismHits, localResult.matches);
+            const universalRisk = calculateUniversalRisk(patentHits, organismHits);
 
             const finalResult = {
                 metadata: localResult.metadata,
@@ -111,14 +111,8 @@ function App() {
      * 2. YELLOW (Caution): Patent match in 'pat'
      * 3. GREEN (Safe): No issues
      */
-    const calculateUniversalRisk = (patentHits, organismHits, localMatches) => {
-        // 1. CHECK RED FLAGS (Global Pathogens + Local Biosecurity)
-
-        // A. Check Local
-        const localBio = localMatches.find(m => m.type === 'BIOSECURITY_MATCH' || m.riskLevel === 'RESTRICTED');
-        if (localBio) return createRisk('RED', 100, 'RESTRICTED_DO_NOT_USE', `Matches restricted pathogen: ${localBio.entry.name}`);
-
-        // B. Check Global Organisms (Heuristic Keyword Search)
+    const calculateUniversalRisk = (patentHits, organismHits) => {
+        // 1. CHECK RED FLAGS (Global Pathogens ONLY)
         const DANGER_KEYWORDS = ['anthra', 'ebola', 'variola', 'pestis', 'botulinum', 'francisella', 'marburg', 'lassa', 'y.pestis', 'b.anthracis'];
 
         if (organismHits && organismHits.length > 0) {
@@ -267,23 +261,6 @@ function App() {
                                     )}
                                 </div>
 
-                                <div className="opacity-80">
-                                    <h4 className="text-sm font-medium text-gray-500 uppercase mb-4">Local Biosecurity Checks</h4>
-                                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-                                        <h4 className="text-sm font-medium text-gray-500 uppercase mb-2">Sequence Metadata</h4>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <span className="block text-xs text-gray-400">Length</span>
-                                                <span className="font-mono text-lg">{result.metadata.length} bp</span>
-                                            </div>
-                                            <div>
-                                                <span className="block text-xs text-gray-400">Type</span>
-                                                <span className="font-medium text-lg">{result.metadata.type}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <MatchDetails matches={result.localMatches} />
-                                </div>
                             </div>
 
                             <div>

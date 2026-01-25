@@ -1,0 +1,57 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2024-06-20",
+  "registries": {
+    "patents": [
+      {
+        "id": "US-PAT-5487681-CRISPR",
+        "name": "CRISPR-Cas9 System (Doudna-Sternberg)",
+        "sequence": "ATGAGTAAAGGATCTCCAGGCACCAACTGC",
+        "sequenceLength": 30,
+        "riskLevel": "PATENT",
+        "owner": "UC Berkeley / Editas Medicine",
+        "expirationDate": "2027-01-15",
+        "royaltyEstimate": {
+          "commercial": 50000,
+          "currency": "USD"
+        }
+      },
+      {
+        "id": "US-PAT-EXAMPLE-GREEN",
+        "name": "Safe Green Fluorescent Protein Variant",
+        "sequence": "ATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGATGGTGATGTTAATGGGCACAAATTTTCTGTCAGTGGAGAGGGTGAAGGTGATGCAACATACGGAAAACTTACCCTTAAATTTATTTGCACTACTGGAAAACTACCTGTTCCATGGCCAACACTTGTCACTACTTTCGCGTATGGTCTTCAATGCTTTGCGAGATACCCAGATCAT",
+        "sequenceLength": 200,
+        "riskLevel": "PATENT",
+        "owner": "Public Domain / OpenMTA",
+        "expirationDate": "2010-01-01"
+      }
+    ],
+    "biosecurity": [
+      {
+        "id": "BWC-ANTHRAX-TOXIN",
+        "name": "Anthrax Lethal Factor (Protective Antigen)",
+        "sequence": "ATGAAATTAAAAGACAAATTT",
+        "sequenceLength": 21,
+        "riskLevel": "RESTRICTED",
+        "restrictionReason": "Biological Weapons Convention (BWC) Schedule 1",
+        "regulatoryBodies": [
+          "UNSC",
+          "NIH",
+          "FBI"
+        ]
+      },
+      {
+        "id": "USER-REPORTED-HAZARD",
+        "name": "Restricted Viral Sequence (User Reported)",
+        "sequence": "ATGTCCCAGTTACAAGAGTCACAGACCACTCAATATGACAATATCCAGTCGGAAGAGTTG",
+        "sequenceLength": 60,
+        "riskLevel": "RESTRICTED",
+        "restrictionReason": "User Defined Hazardous Sequence",
+        "regulatoryBodies": [
+          "CUSTOM"
+        ]
+      }
+    ],
+    "organism_restrictions": []
+  }
+}

@@ -182,7 +182,10 @@ function App() {
                         </div>
                         <h3 className="text-xl font-semibold text-gray-800 animate-pulse">{progressMessage}</h3>
                         <p className="text-gray-500 mt-2">{progress}% Complete</p>
-                        <p className="text-xs text-gray-400 mt-4">Connecting to external servers... do not close this window.</p>
+                        <p className="text-xs text-gray-400 mt-4">
+                            Connecting to NCBI Global Servers...<br />
+                            <span className="font-semibold text-indigo-500">Please wait. comprehensive global search takes 30-60 seconds.</span>
+                        </p>
                     </div>
                 )}
 

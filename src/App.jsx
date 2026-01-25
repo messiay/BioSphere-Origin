@@ -5,6 +5,7 @@ import { MatchDetails } from './components/MatchDetails';
 import AnalysisWorker from './workers/analysis.worker.js?worker';
 import { BlastService } from './services/blast';
 import { calculateRiskScore } from './core/risk';
+import { PdfGenerator } from './services/pdfGenerator';
 
 function App() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -147,26 +148,45 @@ function App() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-            <header className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center">
-                        <div className="h-8 w-8 bg-blue-600 rounded-lg mr-3 shadow-sm flex items-center justify-center text-white font-bold">BP</div>
-                        <h1 className="text-xl font-bold text-gray-900 tracking-tight">Bio-Provenance <span className="text-gray-400 font-light ml-1">v2.0</span></h1>
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
+            <header className="bg-slate-900 border-b border-slate-800 shadow-md">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white font-bold text-xl">
+                            B
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-white tracking-tight">BioSphere <span className="text-indigo-400 font-light">Origin</span></h1>
+                            <p className="text-xs text-slate-400 -mt-1 tracking-wide uppercase">Universal Biosecurity Protocol</p>
+                        </div>
                     </div>
-                    <div className="text-sm text-gray-500">Global Verification Mode</div>
+                    <div className="flex items-center space-x-4">
+                        <span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-emerald-400 flex items-center">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
+                            SYSTEM ONLINE
+                        </span>
+                    </div>
                 </div>
             </header>
 
             <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {!result && !isAnalyzing && (
                     <div className="mt-12">
-                        <div className="text-center mb-10">
-                            <h2 className="text-3xl font-bold text-gray-900 mb-4">Global Sequence Verification</h2>
-                            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Validate sequences against the complete NCBI Global Patent Database.
-                                <br /><span className="text-sm font-semibold text-indigo-600 mt-2 block">Powered by NIH BLAST + Local Biosecurity Checks</span>
+                        <div className="text-center mb-12">
+                            <h2 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                                Secure Genetic Intelligence
+                            </h2>
+                            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                                Verify biological sequences against the <span className="font-semibold text-slate-900">Global Patent Loop</span> and <span className="font-semibold text-slate-900">NIH Pathogen Database</span> in real-time.
                             </p>
+                            <div className="mt-4 flex justify-center space-x-2">
+                                <span className="inline-flex items-center px-3 py-0.5 rounded text-sm font-medium bg-indigo-50 text-indigo-700">
+                                    NCBI BLAST Integration
+                                </span>
+                                <span className="inline-flex items-center px-3 py-0.5 rounded text-sm font-medium bg-emerald-50 text-emerald-700">
+                                    AES-256 Encrypted Input
+                                </span>
+                            </div>
                         </div>
                         <UploadArea onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} />
                     </div>
@@ -274,7 +294,10 @@ function App() {
                                     <p className="text-sm text-blue-800 mb-4">
                                         Validated against Global Patent DB at {new Date().toLocaleTimeString()}.
                                     </p>
-                                    <button className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium transition-colors">
+                                    <button
+                                        onClick={() => PdfGenerator.generateReport(result)}
+                                        className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium transition-colors"
+                                    >
                                         Download Global Search PDF
                                     </button>
                                 </div>
@@ -285,8 +308,13 @@ function App() {
             </main>
 
             <footer className="bg-white border-t border-gray-200 mt-12">
-                <div className="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-400">
-                    © 2026 Bio-Provenance Inc. | Powered by NCBI BLAST
+                <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-slate-400">
+                    <div className="flex justify-center space-x-6 mb-4">
+                        <a href="#" className="hover:text-slate-600">Privacy Policy</a>
+                        <a href="#" className="hover:text-slate-600">Compliance Terms</a>
+                        <a href="#" className="hover:text-slate-600">API Access</a>
+                    </div>
+                    <p>© 2026 BioSphere Systems Inc. All rights reserved. | Powered by NCBI</p>
                 </div>
             </footer>
         </div>

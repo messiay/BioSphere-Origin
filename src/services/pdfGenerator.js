@@ -5,7 +5,7 @@ export const PdfGenerator = {
     generateReport(result) {
         try {
             const doc = new jsPDF();
-            const { metadata, globalMatches, organismMatches, risk } = result;
+            const { metadata, globalMatches, organismMatches, risk, compliance } = result;
 
             // --- Header ---
             doc.setFillColor(63, 81, 181); // Indigo color
@@ -102,6 +102,45 @@ export const PdfGenerator = {
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'italic');
                 doc.text('No matching organisms found (Novel/Synthetic).', 14, finalY + 8);
+            }
+
+            // Capture Y position after second table
+            if (doc.lastAutoTable) finalY = doc.lastAutoTable.finalY + 15;
+            else finalY += 20;
+
+            // --- Regulatory Compliance (New Section) ---
+            if (compliance) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 0, 0);
+                doc.text('Regulatory Compliance Audit', 14, finalY);
+
+                // Status Box
+                let statusColor = [100, 116, 139]; // Slate
+                if (compliance.status === 'COMPLIANT') statusColor = [22, 163, 74]; // Green
+                if (compliance.status === 'RESTRICTED') statusColor = [220, 38, 38]; // Red
+                if (compliance.status === 'WARNING') statusColor = [202, 138, 4]; // Yellow
+
+                doc.setDrawColor(...statusColor);
+                doc.setFillColor(248, 250, 252); // Very light slate
+                doc.rect(14, finalY + 5, 180, 20, 'FD');
+
+                doc.setFontSize(10);
+                doc.setTextColor(...statusColor);
+                doc.text(`JURISDICTION: ${compliance.country}`, 20, finalY + 12);
+
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`STATUS: ${compliance.status}`, 20, finalY + 18);
+
+                // Legal Text
+                doc.setFontSize(9);
+                doc.setTextColor(50, 50, 50);
+                doc.setFont('helvetica', 'normal');
+
+                // Truncate guidance text if too long
+                const guidance = doc.splitTextToSize(compliance.guidance || 'No specific guidance.', 170);
+                doc.text(guidance, 14, finalY + 35);
             }
 
             // --- Disclaimer ---

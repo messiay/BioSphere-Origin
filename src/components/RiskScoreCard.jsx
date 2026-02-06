@@ -18,31 +18,40 @@ export function RiskScoreCard({ risk }) {
     const colors = colorMap[riskLevel] || colorMap.GREEN;
 
     return (
-        <div className={`${colors.bg} border-l-4 ${colors.border} rounded-lg p-6 shadow-sm`}>
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                    <span className="text-3xl">{colors.icon}</span>
+        <div className={`${colors.bg} border-l-4 ${colors.border} rounded-md p-5 shadow-sm`}>
+            <div className="flex items-start justify-between">
+                <div className="flex gap-4">
+                    {/* Icon Block */}
+                    <div className={`p-2 rounded-full border bg-white ${colors.border}`}>
+                        {riskLevel === 'GREEN' && (
+                            <svg className={`w-6 h-6 ${colors.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        )}
+                        {riskLevel === 'YELLOW' && (
+                            <svg className={`w-6 h-6 ${colors.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        )}
+                        {riskLevel === 'RED' && (
+                            <svg className={`w-6 h-6 ${colors.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        )}
+                    </div>
+
                     <div>
-                        <h3 className={`text-2xl font-bold ${colors.text}`}>{riskLevel} RISK</h3>
-                        <p className={`text-sm font-medium ${colors.text} opacity-80`}>{statusMap[status] || status}</p>
+                        <h3 className={`text-lg font-bold ${colors.text} tracking-tight`}>{riskLevel} RISK DETECTED</h3>
+                        <p className={`text-xs font-bold ${colors.text} opacity-80 mt-1 uppercase tracking-wide`}>{statusMap[status] || status}</p>
                     </div>
                 </div>
+
                 <div className="text-right">
-                    <div className={`text-4xl font-bold ${colors.text}`}>{overallScore}%</div>
-                    <div className={`text-xs uppercase tracking-wider ${colors.text} opacity-70`}>Risk Score</div>
+                    <div className={`text-3xl font-bold ${colors.text} font-mono leading-none`}>{overallScore}</div>
+                    <div className={`text-[10px] uppercase font-bold ${colors.text} opacity-60 mt-1`}>Risk Score</div>
                 </div>
             </div>
 
-            {riskLevel === 'YELLOW' && (
-                <div className="bg-white/50 p-3 rounded mt-2 text-sm text-yellow-800">
-                    <strong>PATENT INFRINGEMENT RISK:</strong> Sequence is owned by a corporation/university.
-                    Commercial licensing required.
-                </div>
-            )}
-            {riskLevel === 'RED' && (
-                <div className="bg-white/50 p-3 rounded mt-2 text-sm text-red-800">
-                    <strong>BIOSECURITY ALERT:</strong> Matches a known pathogen/weapon.
-                    Do not synthesize. Possession may be a federal crime.
+            {riskLevel !== 'GREEN' && (
+                <div className="mt-4 pt-3 border-t border-black/5">
+                    <p className={`text-xs font-medium ${colors.text} leading-relaxed`}>
+                        {riskLevel === 'YELLOW' && "Warning: High similarity to patented sequences associated with corporate usage rights."}
+                        {riskLevel === 'RED' && "CRITICAL: Pathogenic signature detected. Matches restriction lists for select agents."}
+                    </p>
                 </div>
             )}
         </div>

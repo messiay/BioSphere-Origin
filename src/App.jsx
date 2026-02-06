@@ -2,16 +2,23 @@ import { useState, useEffect, useRef } from 'react';
 import { UploadArea } from './components/UploadArea';
 import { RiskScoreCard } from './components/RiskScoreCard';
 import { MatchDetails } from './components/MatchDetails';
+import { CountrySelector } from './components/CountrySelector';
+import { ComplianceReportCard } from './components/ComplianceReportCard';
+import { Documentation } from './components/Documentation';
 import AnalysisWorker from './workers/analysis.worker.js?worker';
 import { BlastService } from './services/blast';
 import { calculateRiskScore } from './core/risk';
 import { PdfGenerator } from './services/pdfGenerator';
+import { evaluateCompliance } from './services/compliance';
 
 function App() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState(null);
     const [progress, setProgress] = useState(0);
     const [progressMessage, setProgressMessage] = useState('');
+    const [selectedCountry, setSelectedCountry] = useState('GLOBAL');
+    const [complianceReport, setComplianceReport] = useState(null);
+    const [showDocs, setShowDocs] = useState(false);
 
     const workerRef = useRef(null);
 
@@ -48,12 +55,18 @@ function App() {
             // Step 3: Synthesis
             const universalRisk = calculateUniversalRisk(patentHits, organismHits);
 
+            // Step 4: Regulatory Compliance Evaluation
+            setProgressMessage('Evaluating regulatory compliance...');
+            const compliance = evaluateCompliance(organismHits, selectedCountry);
+            setComplianceReport(compliance);
+
             const finalResult = {
                 metadata: localResult.metadata,
                 localMatches: localResult.matches,
                 globalMatches: patentHits, // Show patents primarily in the list
                 organismMatches: organismHits, // Store organisms for details
-                risk: universalRisk
+                risk: universalRisk,
+                compliance // Add compliance to result
             };
 
             setResult(finalResult);
@@ -93,17 +106,28 @@ function App() {
         console.log(`Starting ${label} Search...`);
         const rid = await BlastService.submitJob(sequence, db);
 
-        let isReady = false;
-        let attempts = 0;
-        while (!isReady) {
-            if (attempts > 60) throw new Error(`${label} Search Timed Out`); // 5 min max
-            await new Promise(r => setTimeout(r, 5000)); // Poll every 5s
-            isReady = await BlastService.checkStatus(rid);
-            setProgress(prev => Math.min(prev + 2, 95));
-            attempts++;
-        }
+        try {
+            // Adaptive Polling Strategy
+            // fast poll (3s) for first 15s, then slow poll (10s)
+            let attempts = 0;
+            while (await BlastService.checkStatus(rid) === false) {
+                attempts++;
+                const waitTime = attempts < 5 ? 3000 : 10000;
+                await new Promise(resolve => setTimeout(resolve, waitTime));
 
-        return await BlastService.getResults(rid);
+                // Smoother progress bar update
+                setProgress(prev => Math.min(prev + 1, 98));
+
+                if (attempts > 120) throw new Error(`${label} Search Timed Out (Limit: 20 mins)`); // 120 * 10s = 1200s = 20 mins
+            }
+            const results = await BlastService.getResults(rid);
+            // Save to cache for next time!
+            BlastService.saveCache(sequence, db, results);
+            return results;
+        } catch (e) {
+            console.error(`Error during ${label} BLAST job:`, e);
+            throw e;
+        }
     };
 
     /**
@@ -145,67 +169,112 @@ function App() {
         setResult(null);
         setProgress(0);
         setIsAnalyzing(false);
+        setComplianceReport(null);
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
-            <header className="bg-slate-900 border-b border-slate-800 shadow-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white font-bold text-xl">
-                            B
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-white tracking-tight">BioSphere <span className="text-indigo-400 font-light">Origin</span></h1>
-                            <p className="text-xs text-slate-400 -mt-1 tracking-wide uppercase">Universal Biosecurity Protocol</p>
-                        </div>
+        <div className="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50">
+            {/* Professional Scientific Header */}
+            <header className="bg-white border-b border-slate-200 sticky top-0 z-40 h-14 flex items-center justify-between px-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded bg-teal-700 text-white font-bold text-lg font-mono tracking-tighter">
+                        BP
                     </div>
-                    <div className="flex items-center space-x-4">
-                        <span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-emerald-400 flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
-                            SYSTEM ONLINE
-                        </span>
+                    <div>
+                        <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">BioSphere Origin</h1>
+                        <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider leading-none">Protocol v2.1.0-RC</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full border border-slate-200">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span className="text-[10px] font-bold text-slate-600 font-mono tracking-wide">NCBI: CONNECTED</span>
+                    </div>
+
+                    <button
+                        onClick={() => setShowDocs(true)}
+                        className="text-xs font-semibold text-slate-500 hover:text-teal-700 flex items-center gap-1.5 transition-colors"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        Protocol Docs
+                    </button>
+
+                    <div className="w-px h-6 bg-slate-200 mx-1"></div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center text-xs font-bold text-teal-800">U</span>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="flex-1 max-w-7xl mx-auto w-full p-6">
                 {!result && !isAnalyzing && (
-                    <div className="mt-12">
-                        <div className="text-center mb-12">
-                            <h2 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                                Secure Genetic Intelligence
-                            </h2>
-                            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                                Verify biological sequences against the <span className="font-semibold text-slate-900">Global Patent Loop</span> and <span className="font-semibold text-slate-900">NIH Pathogen Database</span> in real-time.
-                            </p>
-                            <div className="mt-4 flex justify-center space-x-2">
-                                <span className="inline-flex items-center px-3 py-0.5 rounded text-sm font-medium bg-indigo-50 text-indigo-700">
-                                    NCBI BLAST Integration
-                                </span>
-                                <span className="inline-flex items-center px-3 py-0.5 rounded text-sm font-medium bg-emerald-50 text-emerald-700">
-                                    AES-256 Encrypted Input
-                                </span>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-fade-in-up">
+                        {/* Sidebar / Configuration Panel */}
+                        <div className="md:col-span-4 bg-white border border-slate-200 rounded-lg p-5 shadow-sm h-fit">
+                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Configuration</h2>
+
+                            <div className="mb-6">
+                                <label className="block text-xs font-semibold text-slate-700 mb-2">Compliance Jurisdiction</label>
+                                <CountrySelector
+                                    selectedCountry={selectedCountry}
+                                    onCountryChange={setSelectedCountry}
+                                />
+                                <p className="textxs text-slate-400 mt-2 leading-tight">
+                                    Select the legal framework for compliance cross-referencing.
+                                </p>
+                            </div>
+
+                            <div className="bg-blue-50 border border-blue-100 rounded p-3">
+                                <h4 className="text-xs font-bold text-blue-900 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    System Status
+                                </h4>
+                                <div className="mt-2 space-y-1">
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-blue-700">NCBI BLAST API</span>
+                                        <span className="font-mono text-emerald-600">ONLINE</span>
+                                    </div>
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-blue-700">Patent Database</span>
+                                        <span className="font-mono text-emerald-600">INDEXED</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <UploadArea onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} />
+
+                        {/* Main Input Panel */}
+                        <div className="md:col-span-8">
+                            <UploadArea onAnalyze={handleAnalyze} isAnalyzing={isAnalyzing} />
+                        </div>
                     </div>
                 )}
 
                 {isAnalyzing && !result && (
-                    <div className="mt-20 max-w-md mx-auto text-center">
-                        <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
-                            <div
-                                className="absolute top-0 left-0 h-full bg-blue-600 transition-all duration-300 ease-out"
-                                style={{ width: `${progress}%` }}
-                            ></div>
+                    <div className="mt-12 max-w-2xl mx-auto text-center fade-in">
+
+                        {/* Progress Status */}
+                        <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200 max-w-lg mx-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-bold text-slate-800 font-mono">Running Protocol...</h3>
+                                <span className="text-2xl font-bold text-teal-600 font-mono">{progress}%</span>
+                            </div>
+
+                            <div className="relative w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-6">
+                                <div
+                                    className="absolute top-0 left-0 h-full bg-teal-500 transition-all duration-300 ease-out"
+                                    style={{ width: `${progress}%` }}
+                                ></div>
+                            </div>
+
+                            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded border border-slate-200">
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-500 border-t-transparent"></div>
+                                <p className="text-xs font-mono text-slate-600">{progressMessage}</p>
+                            </div>
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-800 animate-pulse">{progressMessage}</h3>
-                        <p className="text-gray-500 mt-2">{progress}% Complete</p>
-                        <p className="text-xs text-gray-400 mt-4">
-                            Connecting to NCBI Global Servers...<br />
-                            <span className="font-semibold text-indigo-500">Please wait. comprehensive global search takes 30-60 seconds.</span>
-                        </p>
                     </div>
                 )}
 
@@ -221,9 +290,9 @@ function App() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2">
                                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-lg font-bold text-gray-900">Global Patent Matches</h3>
-                                        <span className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-xs font-semibold">NCBI BLAST</span>
+                                    <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Global Patent Matches</h3>
+                                        <span className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-teal-100">NCBI BLAST: PAT</span>
                                     </div>
 
                                     {result.globalMatches.length > 0 ? (
@@ -287,6 +356,13 @@ function App() {
                             </div>
 
                             <div>
+                                {/* Compliance Report Card */}
+                                {complianceReport && (
+                                    <div className="mb-6">
+                                        <ComplianceReportCard complianceReport={complianceReport} />
+                                    </div>
+                                )}
+
                                 <RiskScoreCard risk={result.risk} />
 
                                 <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
@@ -317,8 +393,11 @@ function App() {
                     <p>© 2026 BioSphere Systems Inc. All rights reserved. | Powered by NCBI</p>
                 </div>
             </footer>
+            {/* Documentation Modal */}
+            {showDocs && <Documentation onClose={() => setShowDocs(false)} />}
         </div>
     );
 }
 
 export default App;
+

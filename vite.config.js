@@ -14,7 +14,9 @@ export default defineConfig({
         target: 'https://blast.ncbi.nlm.nih.gov/Blast.cgi',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/blast/, ''),
-        secure: false
+        secure: false,
+        timeout: 300000, // 5 minutes
+        proxyTimeout: 300000, // 5 minutes (for slow backend responses)
       }
     }
   }

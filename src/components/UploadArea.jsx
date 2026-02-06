@@ -40,18 +40,22 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-xl border border-slate-200/60 backdrop-blur-sm">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Sequence Input</h2>
+        <div className="card p-6 h-full flex flex-col">
+            <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-6 border-b border-slate-100 pb-2">Sequence Input</h2>
 
             <div
-                className={`relative flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-lg transition-colors duration-200 ease-in-out ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}
+                className={`relative flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-md transition-colors duration-200 ease-in-out ${dragActive ? 'border-teal-500 bg-teal-50/10' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50'}`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
             >
-                <p className="text-gray-500 mb-2">Drag and drop FASTA file here</p>
-                <span className="text-sm text-gray-400">or</span>
+                <div className="flex flex-col items-center text-slate-500">
+                    <svg className="w-8 h-8 mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="font-medium text-sm">Drag FASTA / TXT file</p>
+                </div>
             </div>
 
             <div className="mt-4">
@@ -61,7 +65,7 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
                         <span className="text-xs text-slate-500 mr-1">TRIAL MODE:</span>
                         <button
                             onClick={() => setTextInput("ATGAGTAAAGGATCTCCAGGCACCAACTGC")}
-                            className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 border border-yellow-200 transition-colors"
+                            className="text-[10px] font-mono px-2 py-1 bg-yellow-50 text-yellow-700 rounded border border-yellow-200 hover:bg-yellow-100 transition-colors uppercase tracking-tight"
                         >
                             Load CRISPR (Patent)
                         </button>
@@ -74,10 +78,11 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
                     </div>
                 </div>
                 <textarea
-                    className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                    placeholder=">Sequence_ID\nATGCTAGCT..."
+                    className="w-full h-40 p-4 border border-slate-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 font-mono text-xs leading-relaxed text-slate-700 placeholder-slate-400 bg-white"
+                    placeholder={`>SEQUENCE_001\nATGCTAGCTAGCTAGCGTACGTAGCT...`}
                     value={textInput}
                     onChange={handleChange}
+                    spellCheck={false}
                 ></textarea>
             </div>
 
@@ -87,7 +92,17 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
                     disabled={isAnalyzing || !textInput}
                     className={`px-6 py-2.5 rounded-lg text-white font-medium transition-all ${isAnalyzing || !textInput ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-md transform hover:-translate-y-0.5'}`}
                 >
-                    {isAnalyzing ? 'Analyzing...' : 'Analyze Sequence'}
+                    {isAnalyzing ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span>Processing...</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Start Analysis Protocol</span>
+                        </div>
+                    )}
                 </button>
             </div>
         </div>

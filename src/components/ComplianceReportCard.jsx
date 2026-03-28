@@ -3,7 +3,7 @@ import { STATUS_LABELS, SEVERITY_LEVELS } from '../data/regulations';
 export function ComplianceReportCard({ complianceReport }) {
     if (!complianceReport) return null;
 
-    const { jurisdiction, flagIcon, authority, status, severity, overallRisk, violations, summary } = complianceReport;
+    const { jurisdiction, flagIcon, authority, severity, overallRisk, violations, summary } = complianceReport;
 
     // Color mapping based on severity
     const severityColors = {

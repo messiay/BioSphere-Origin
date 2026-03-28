@@ -79,7 +79,7 @@ export function Documentation({ onClose }) {
                                     </div>
                                     <p className="text-yellow-800 mb-2 font-medium">Patent Overlap or Dual-Use Concern</p>
                                     <p className="text-sm text-yellow-700">
-                                        <span className="font-bold">Trigger:</span> High similarity (>80%) to existing patented sequences or "dual-use" items that require export controls.
+                                        <span className="font-bold">Trigger:</span> High similarity (&gt;80%) to existing patented sequences or "dual-use" items that require export controls.
                                     </p>
                                     <p className="text-sm text-yellow-700 mt-1">
                                         <span className="font-bold">Action:</span> Review patent ownership. Check export license requirements if shipping internationally.

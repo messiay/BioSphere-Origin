@@ -17,6 +17,18 @@ export default defineConfig({
         secure: false,
         timeout: 300000, // 5 minutes
         proxyTimeout: 300000, // 5 minutes (for slow backend responses)
+      },
+      '/api/google-patents': {
+        target: 'https://patents.google.com/patent',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/google-patents/, ''),
+        secure: false
+      },
+      '/api/ncbi-utils': {
+        target: 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/ncbi-utils/, ''),
+        secure: false
       }
     }
   }

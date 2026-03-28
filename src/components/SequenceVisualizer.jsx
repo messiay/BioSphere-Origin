@@ -24,10 +24,33 @@ export function SequenceVisualizer({ sequenceLength, matches }) {
         })).sort((a, b) => b.identityPercentage - a.identityPercentage); // Draw high risk on top
     }, [matches, scale]);
 
+    const coverage = useMemo(() => {
+        if (!matches || matches.length === 0) return 0;
+        // Simple approximation of unique coverage
+        const sorted = [...matches].sort((a, b) => a.queryFrom - b.queryFrom);
+        let total = 0;
+        let lastEnd = 0;
+        for (const m of sorted) {
+            if (m.queryTo > lastEnd) {
+                total += m.queryTo - Math.max(m.queryFrom, lastEnd);
+                lastEnd = m.queryTo;
+            }
+        }
+        const result = ((total / sequenceLength) * 100);
+        return (result > 100 ? 100 : result).toFixed(1);
+    }, [matches, sequenceLength]);
+
     return (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 mb-6">
-            <h3 className="text-lg font-bold text-slate-800 mb-4">Sequence Coverage Map</h3>
-            <div className="relative overflow-x-auto">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Alignment Visualizer</h3>
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Query Coverage</span>
+                    <span className="text-sm font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">{coverage}%</span>
+                </div>
+            </div>
+
+            <div className="relative overflow-x-auto py-4">
                 <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="w-full">
                     {/* Background Track */}
                     <rect
@@ -40,8 +63,8 @@ export function SequenceVisualizer({ sequenceLength, matches }) {
                     />
 
                     {/* Sequence Length Markers */}
-                    <text x={margin.left} y={height / 2 + 25} className="text-xs fill-slate-400" textAnchor="start">1 bp</text>
-                    <text x={width - margin.right} y={height / 2 + 25} className="text-xs fill-slate-400" textAnchor="end">{sequenceLength} bp</text>
+                    <text x={margin.left} y={height / 2 + 25} className="text-[10px] font-bold fill-slate-300 font-mono" textAnchor="start">1 bp</text>
+                    <text x={width - margin.right} y={height / 2 + 25} className="text-[10px] font-bold fill-slate-300 font-mono" textAnchor="end">{sequenceLength} bp</text>
 
                     {/* Matches */}
                     {processedMatches.map((match, i) => (
@@ -53,38 +76,42 @@ export function SequenceVisualizer({ sequenceLength, matches }) {
                                 height={20}
                                 fill={match.color}
                                 rx={2}
-                                opacity={0.7}
+                                opacity={0.6}
                                 className="group-hover:opacity-100 transition-opacity"
                             />
-                            {/* Label on bar */}
-                            <text
-                                x={margin.left + match.x + (match.w / 2)}
-                                y={height / 2 - 14}
-                                textAnchor="middle"
-                                className="text-[10px] fill-slate-500 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-mono"
-                                fontSize="10"
-                            >
-                                {match.queryFrom}-{match.queryTo}
-                            </text>
-
-                            {/* Simple Tooltip on Hover via Title tag (native) */}
+                            {/* Hotspot Pulse */}
+                            {match.identityPercentage > 98 && (
+                                <rect
+                                    x={margin.left + match.x}
+                                    y={height / 2 - 10}
+                                    width={match.w}
+                                    height={20}
+                                    fill="none"
+                                    stroke={match.color}
+                                    strokeWidth="1"
+                                    rx={2}
+                                    className="animate-pulse"
+                                />
+                            )}
+                            
                             <title>{`${match.title} (${match.identityPercentage.toFixed(1)}%) \nRange: ${match.queryFrom} - ${match.queryTo}`}</title>
                         </g>
                     ))}
                 </svg>
             </div>
-            <div className="mt-2 flex items-center justify-center space-x-6 text-sm">
-                <div className="flex items-center">
-                    <span className="w-3 h-3 bg-red-500 rounded mr-2"></span>
-                    <span className="text-slate-600">High Identity (>95%)</span>
+            
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-tight">
+                <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-red-500 rounded-sm shadow-sm"></span>
+                    <span className="text-slate-500">Pathogen/Patent Hit (&gt;95%)</span>
                 </div>
-                <div className="flex items-center">
-                    <span className="w-3 h-3 bg-yellow-500 rounded mr-2"></span>
-                    <span className="text-slate-600">Partial Match (>80%)</span>
+                <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-yellow-500 rounded-sm shadow-sm"></span>
+                    <span className="text-slate-500">Regulatory Concern (&gt;80%)</span>
                 </div>
-                <div className="flex items-center">
-                    <span className="w-3 h-3 bg-slate-200 rounded mr-2"></span>
-                    <span className="text-slate-600">Safe Region</span>
+                <div className="flex items-center gap-2 text-emerald-600">
+                    <span className="w-3 h-3 bg-slate-100 border border-slate-200 rounded-sm"></span>
+                    <span>Novel Synthesis Zone</span>
                 </div>
             </div>
         </div>

@@ -2,7 +2,36 @@ import { useState, useCallback } from 'react';
 
 export function UploadArea({ onAnalyze, isAnalyzing }) {
     const [textInput, setTextInput] = useState('');
+    const [sanitationError, setSanitationError] = useState('');
     const [dragActive, setDragActive] = useState(false);
+
+    const sanitizeSequence = (input) => {
+        // Strip FASTA headers if present
+        const lines = input.split('\n');
+        let sequenceOnly = "";
+        
+        if (lines[0].trim().startsWith('>')) {
+            sequenceOnly = lines.slice(1).join('');
+        } else {
+            sequenceOnly = lines.join('');
+        }
+
+        // 1. Strip Junk: Remove spaces, line breaks, numbers
+        const clean = sequenceOnly.replace(/[\s\n\r0-9]/g, '').toUpperCase();
+        
+        // Update the textarea with the cleaned version (Visible Stripping)
+        setTextInput(clean);
+
+        // 2. ATCG Check: Find specific invalid characters
+        const invalidChars = [...new Set(clean.match(/[^ATCG]/g) || [])];
+        if (invalidChars.length > 0) {
+            setSanitationError(`Invalid characters found: ${invalidChars.join(', ')}`);
+            return null;
+        }
+
+        setSanitationError('');
+        return clean;
+    };
 
     // Handle Drag Events
     const handleDrag = useCallback((e) => {
@@ -25,7 +54,8 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
             const file = e.dataTransfer.files[0];
             const reader = new FileReader();
             reader.onload = (event) => {
-                onAnalyze(event.target.result);
+                const sanitized = sanitizeSequence(event.target.result);
+                if (sanitized) onAnalyze(sanitized);
             };
             reader.readAsText(file);
         }
@@ -33,10 +63,12 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
 
     const handleChange = (e) => {
         setTextInput(e.target.value);
+        if (sanitationError) setSanitationError('');
     };
 
     const handleManualSubmit = () => {
-        onAnalyze(textInput);
+        const sanitized = sanitizeSequence(textInput);
+        if (sanitized) onAnalyze(sanitized);
     };
 
     return (
@@ -50,12 +82,19 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
             >
-                <div className="flex flex-col items-center text-slate-500">
+                <div className="flex flex-col items-center text-slate-500 text-center px-4">
                     <svg className="w-8 h-8 mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <p className="font-medium text-sm">Drag FASTA / TXT file</p>
+                    <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-mono">DNA Only (ATCG)</p>
                 </div>
+
+                {sanitationError && (
+                    <div className="absolute inset-x-0 bottom-0 bg-red-500 text-white p-2 text-[10px] font-bold text-center animate-pulse">
+                        {sanitationError}
+                    </div>
+                )}
             </div>
 
             <div className="mt-4">

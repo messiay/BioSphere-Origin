@@ -1,5 +1,5 @@
 import { parseSequence } from '../core/parser';
-import { kmpSearch, levenshteinSimilarity, fragmentMatch } from '../core/algorithms';
+import { kmpSearch, fragmentMatch } from '../core/algorithms';
 import { calculateRiskScore } from '../core/risk';
 import registryData from '../data/compliance_registry.json';
 

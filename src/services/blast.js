@@ -113,7 +113,7 @@ export const BlastService = {
             hash = ((hash << 5) - hash) + char;
             hash = hash | 0; // Convert to 32bit integer
         }
-        return `blast_cache_${hash}`;
+        return `blast_cache_v2_${hash}`;
     },
 
     checkCache(sequence, database) {
@@ -137,10 +137,27 @@ export const BlastService = {
             const hits = jsonData.BlastOutput2[0].report.results.search.hits;
             return hits.map(hit => {
                 const hsp = hit.hsps[0];
+                const title = hit.description[0].title;
+                const accession = hit.description[0].accession;
+                const taxid = hit.description[0].taxid;
+                
+                // 3. Extract Patent ID from title (e.g. "US 9029636")
+                // Many titles look like "Sequence 88742 from patent US 9029636"
+                let extractedId = hit.description[0].id; // Fallback
+                const patentMatch = title.match(/(US|KR|EP|JP|CN|WO|AU|CA)\s*([A-Z0-9.\-]+)/i);
+                if (patentMatch) {
+                    extractedId = `${patentMatch[1]}${patentMatch[2]}`.replace(/\s+/g, '');
+                } else if (extractedId.includes('|')) {
+                    // If it's a gi|... string, try to find a simpler accession in it
+                    const parts = extractedId.split('|');
+                    extractedId = parts[3] || parts[1] || extractedId;
+                }
+
                 return {
-                    id: hit.description[0].id, // e.g. "US 12345"
-                    title: hit.description[0].title,
-                    accession: hit.description[0].accession,
+                    id: extractedId, // Clean Patent Number or Accession
+                    title: title,
+                    accession: accession,
+                    taxid: taxid,
                     score: hsp.bit_score,
                     eValue: hsp.evalue,
                     // Identity is number of matching bases.

@@ -20,6 +20,7 @@ import { Phase1ResultsExtra } from './components/Phase1ResultsExtra';
 import { SequenceVisualizer } from './components/SequenceVisualizer';
 import { PatentLegalService } from './services/patentLegal';
 import { isIndianTaxid, getIndianSpeciesName } from './data/indianBiota.js';
+import NotificationService from './services/notificationService';
 
 function App() {
     const [showTerminal, setShowTerminal] = useState(false);
@@ -39,6 +40,14 @@ function App() {
     const [biopiracyData, setBiopiracyData] = useState({ isIndian: false, hasForeignVC: null, status: 'NOT_CHECKED' });
     const [gatePassed, setGatePassed] = useState(true);
     const [isCertifiedNonIndian, setIsCertifiedNonIndian] = useState(false);
+    const [isMuted, setIsMuted] = useState(() => {
+        const saved = localStorage.getItem('bio_notifications_muted');
+        return saved ? JSON.parse(saved) : false;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('bio_notifications_muted', JSON.stringify(isMuted));
+    }, [isMuted]);
 
     const workerRef = useRef(null);
 
@@ -236,6 +245,10 @@ function App() {
             setResult(finalResult);
             setProgress(100);
             setIsAnalyzing(false);
+            
+            if (!isMuted) {
+                NotificationService.playSuccessChime();
+            }
 
         } catch (err) {
             console.error("Analysis Error:", err);
@@ -322,6 +335,18 @@ function App() {
                         <div className="w-1.5 h-1.5 rounded-full animate-pulse bg-emerald-500"></div>
                         NCBI LIVE ENGINE
                     </div>
+
+                    <button 
+                        onClick={() => setIsMuted(!isMuted)}
+                        className={`w-8 h-8 rounded flex items-center justify-center transition-all hover:bg-slate-100 ${isMuted ? 'text-slate-400' : 'text-indigo-600'}`}
+                        title={isMuted ? "Unmute Notifications" : "Mute Notifications"}
+                    >
+                        {isMuted ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+                        ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M15.536 8.464a5 5 0 010 7.072m1.414-8.486a7 7 0 010 9.9m1.414-11.314a9 9 0 010 12.728M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+                        )}
+                    </button>
 
                     <div className="w-8 h-8 rounded text-white flex items-center justify-center text-xs font-black" style={{backgroundColor: 'var(--bio-indigo)'}}>
                         U

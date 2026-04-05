@@ -6,8 +6,17 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
     const [dragActive, setDragActive] = useState(false);
 
     const sanitizeSequence = (input) => {
+        // DEV TEST HOOK: allow __TEST_AMBIGUITY__ prefix to pass through
+        const DEV_PREFIX = '__TEST_AMBIGUITY__';
+        let devPrefix = '';
+        let rawInput = input;
+        if (input.startsWith(DEV_PREFIX)) {
+            devPrefix = DEV_PREFIX;
+            rawInput = input.slice(DEV_PREFIX.length);
+        }
+
         // Strip FASTA headers if present
-        const lines = input.split('\n');
+        const lines = rawInput.split('\n');
         let sequenceOnly = "";
         
         if (lines[0].trim().startsWith('>')) {
@@ -20,7 +29,7 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
         const clean = sequenceOnly.replace(/[\s\n\r0-9]/g, '').toUpperCase();
         
         // Update the textarea with the cleaned version (Visible Stripping)
-        setTextInput(clean);
+        setTextInput(devPrefix + clean);
 
         // 2. ATCG Check: Find specific invalid characters
         const invalidChars = [...new Set(clean.match(/[^ATCG]/g) || [])];
@@ -29,9 +38,16 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
             return null;
         }
 
+        // 3. Length Gate: min 200bp
+        if (clean.length < 200) {
+            setSanitationError("Error: Sequence too short. A minimum of 200 base pairs is required for accurate taxonomic identification to prevent false positives.");
+            return null;
+        }
+
         setSanitationError('');
-        return clean;
+        return devPrefix + clean;
     };
+
 
     // Handle Drag Events
     const handleDrag = useCallback((e) => {
@@ -55,7 +71,13 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const sanitized = sanitizeSequence(event.target.result);
-                if (sanitized) onAnalyze(sanitized);
+                if (sanitized) {
+                    if (sanitized.length < 200) {
+                        setSanitationError("Error: Sequence too short. A minimum of 200 base pairs is required for accurate taxonomic identification to prevent false positives.");
+                        return;
+                    }
+                    onAnalyze(sanitized);
+                }
             };
             reader.readAsText(file);
         }
@@ -68,81 +90,86 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
 
     const handleManualSubmit = () => {
         const sanitized = sanitizeSequence(textInput);
-        if (sanitized) onAnalyze(sanitized);
+        if (sanitized) {
+            if (sanitized.length < 200) {
+                setSanitationError("Error: Sequence too short. A minimum of 200 base pairs is required for accurate taxonomic identification to prevent false positives.");
+                return;
+            }
+            onAnalyze(sanitized);
+        }
     };
 
     return (
-        <div className="card p-6 h-full flex flex-col">
-            <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-6 border-b border-slate-100 pb-2">Sequence Input</h2>
-
-            <div
-                className={`relative flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-md transition-colors duration-200 ease-in-out ${dragActive ? 'border-teal-500 bg-teal-50/10' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50'}`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-            >
-                <div className="flex flex-col items-center text-slate-500 text-center px-4">
-                    <svg className="w-8 h-8 mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p className="font-medium text-sm">Drag FASTA / TXT file</p>
-                    <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-mono">DNA Only (ATCG)</p>
+        <div className="bench-panel overflow-hidden md:col-span-12 animate-fade-in-up">
+            {/* Header band */}
+            <div className="px-6 py-3 flex items-center justify-between bg-slate-50 border-b border-slate-200">
+                <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-slate-300 animate-pulse"></div>
+                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Sequence Encoding Input</h2>
                 </div>
-
-                {sanitationError && (
-                    <div className="absolute inset-x-0 bottom-0 bg-red-500 text-white p-2 text-[10px] font-bold text-center animate-pulse">
-                        {sanitationError}
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-slate-400 font-bold uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded border border-slate-200">FASTA</span>
+                    <span className="text-[9px] font-mono text-slate-400 font-bold uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded border border-slate-200">RAW DNA</span>
+                </div>
             </div>
 
-            <div className="mt-4">
-                <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm font-medium text-gray-700">Or paste sequence manually</label>
-                    <div className="space-x-2">
-                        <span className="text-xs text-slate-500 mr-1">TRIAL MODE:</span>
-                        <button
-                            onClick={() => setTextInput("ATGAGTAAAGGATCTCCAGGCACCAACTGC")}
-                            className="text-[10px] font-mono px-2 py-1 bg-yellow-50 text-yellow-700 rounded border border-yellow-200 hover:bg-yellow-100 transition-colors uppercase tracking-tight"
-                        >
-                            Load CRISPR (Patent)
-                        </button>
-                        <button
-                            onClick={() => setTextInput("ATGAAATTAAAAGACAAATTT")}
-                            className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200 border border-red-200 transition-colors"
-                        >
-                            Load Anthrax (Biohazard)
-                        </button>
-                    </div>
-                </div>
-                <textarea
-                    className="w-full h-40 p-4 border border-slate-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 font-mono text-xs leading-relaxed text-slate-700 placeholder-slate-400 bg-white"
-                    placeholder={`>SEQUENCE_001\nATGCTAGCTAGCTAGCGTACGTAGCT...`}
-                    value={textInput}
-                    onChange={handleChange}
-                    spellCheck={false}
-                ></textarea>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-                <button
-                    onClick={handleManualSubmit}
-                    disabled={isAnalyzing || !textInput}
-                    className={`px-6 py-2.5 rounded-lg text-white font-medium transition-all ${isAnalyzing || !textInput ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-md transform hover:-translate-y-0.5'}`}
+            <div className="p-8 flex flex-col flex-1 gap-8">
+                <div
+                    className={`relative flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-lg transition-all duration-200 group ${dragActive ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-slate-50'}`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    style={{ cursor: 'pointer' }}
                 >
-                    {isAnalyzing ? (
-                        <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            <span>Processing...</span>
+                    <div className="flex flex-col items-center text-center px-6 gap-3">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-1 transition-all ${dragActive ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-400 shadow-sm'}`}>
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                         </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Start Analysis Protocol</span>
+                        <p className="text-sm font-bold text-slate-700 uppercase tracking-tight">Drop Sequencing Data File</p>
+                        <p className="text-[10px] text-slate-400 font-mono font-bold uppercase tracking-widest">DNA (ATCG) · MIN 200BP</p>
+                    </div>
+
+                    {sanitationError && (
+                        <div className="absolute inset-x-0 bottom-0 p-3 text-[10px] font-bold text-center rounded-b-lg bg-red-50 text-red-600 border-t border-red-100">
+                            {sanitationError}
                         </div>
                     )}
-                </button>
+                </div>
+
+                <div className="flex-1 flex flex-col">
+                    <div className="flex justify-between items-end mb-2">
+                        <label className="text-[10px] uppercase font-bold tracking-[0.15em] text-slate-400">Manual Sequence Transcription</label>
+                        {textInput && (
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-mono text-slate-400 uppercase font-bold tracking-tighter">Attribution:</span>
+                                <span className="data-stamp">{textInput.replace(/[^ATCGatcg]/g, '').length} BASE PAIRS</span>
+                            </div>
+                        )}
+                    </div>
+                    <textarea
+                        className="w-full flex-1 min-h-[220px] p-5 rounded-lg bg-white border border-slate-200 font-mono text-xs leading-relaxed text-slate-700 placeholder-slate-300 resize-none transition-all focus:border-indigo-400 focus:outline-none mb-6"
+                        placeholder={`>SEQUENCE_001\nATGCTAGCTAGCTAGCGTACGTAGCTCGA...`}
+                        value={textInput}
+                        onChange={handleChange}
+                        spellCheck={false}
+                    ></textarea>
+
+                    <div className="flex justify-end pt-5 border-t border-slate-100">
+                        <button
+                            onClick={handleManualSubmit}
+                            disabled={isAnalyzing || !textInput}
+                            className={`btn-primary px-10 py-3 uppercase tracking-[0.15em] text-[10px] flex items-center gap-3 ${isAnalyzing || !textInput ? 'opacity-40 grayscale' : ''}`}
+                        >
+                            {isAnalyzing ? (
+                                <>
+                                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Processing...
+                                </>
+                            ) : "Execute Analysis Protocol"}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

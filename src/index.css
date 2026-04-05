@@ -1,45 +1,128 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-@layer base {
-  body {
-    @apply antialiased text-slate-800 bg-slate-50 font-sans;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-
-  /* Science-themed scrollbars */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400;
-  }
+:root {
+  --bg-canvas:     rgb(248, 250, 252); /* bg-slate-50 */
+  --bg-card:       #FFFFFF;
+  --border-base:   rgb(226, 232, 240); /* border-slate-200 */
+  --border-faint:  rgb(241, 245, 249); /* border-slate-100 */
+  --text-primary:  rgb(30, 41, 59);   /* text-slate-800 */
+  --text-secondary: rgb(100, 116, 139); /* text-slate-500 */
+  --text-mono:     rgb(51, 65, 85);    /* text-slate-700 */
+  --bio-indigo:    #4F46E5;            /* indigo-600 */
+  --bio-indigo-hov: #4338CA;           /* indigo-700 */
+  --bio-accent:    #00C7B1;
+  --bio-teal:      #1ee5cf;
 }
 
+/* ── Keyframes ─────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Utility animation classes ──────────────────────────── */
+.animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-fade-in-scale { animation: fadeInScale 0.3s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-slide-in-left { animation: slideInLeft 0.3s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Base ───────────────────────────────────────────────── */
+@layer base {
+  html { font-size: 16px; }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Minimal clinical scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(203, 213, 225); /* slate-300 */
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgb(148, 163, 184); /* slate-400 */ }
+}
+
+/* ── Benchling Card component (No shadows, borders only) ── */
 @layer components {
+  .bench-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-base);
+    border-radius: 6px;
+    transition: border-color 0.15s ease;
+  }
+  
+  /* Machine Stamped Data Look */
+  .data-stamp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8125rem;
+    color: var(--text-mono);
+    background-color: rgb(241, 245, 249); /* slate-100 */
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-base);
+    white-space: nowrap;
+  }
+
   .btn-primary {
-    @apply px-4 py-2 bg-teal-700 text-white text-sm font-medium rounded-md shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all;
+    padding: 0.5rem 1rem;
+    background-color: var(--bio-indigo);
+    color: #FFFFFF;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--bio-indigo-hov);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-white text-slate-700 text-sm font-medium rounded-md border border-slate-300 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 transition-all;
+    padding: 0.5rem 1rem;
+    background-color: #FFFFFF;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid rgb(209, 213, 219); /* border-slate-300 */
+    transition: all 0.15s ease;
   }
-
-  .card {
-    @apply bg-white border border-slate-200 shadow-sm rounded-lg;
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--bg-canvas);
   }
 
   .input-field {
-    @apply w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-slate-400;
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    background: #FFFFFF;
+    border: 1px solid var(--border-base);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    transition: border-color 0.15s ease;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--bio-indigo);
   }
 }

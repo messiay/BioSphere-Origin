@@ -7,6 +7,7 @@
 export const INDIAN_TAX_IDS = {
     // 1. Medicinal & Traditional Knowledge (TK)
     "124943": "Azadirachta indica (Neem)",
+    "43036": "Azadirachta indica (Neem)",
     "35977": "Santalum album (Sandalwood)",
     "136217": "Curcuma longa (Turmeric)",
     "182236": "Ocimum tenuiflorum (Tulsi)",

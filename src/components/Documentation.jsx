@@ -4,43 +4,40 @@ export function Documentation({ onClose }) {
     const [activeTab, setActiveTab] = useState('risk');
 
     const tabs = [
-        { id: 'risk', label: 'Risk Signals', icon: '🚦' },
-        { id: 'compliance', label: 'Compliance Engine', icon: '⚖️' },
-        { id: 'performance', label: 'Performance', icon: '⚡' },
-        { id: 'privacy', label: 'Privacy Policy', icon: '🔒' },
+        { id: 'risk', label: 'RISK SIGNALS' },
+        { id: 'compliance', label: 'REGULATORY ENGINE' },
+        { id: 'performance', label: 'OPTIMIZATION' },
+        { id: 'privacy', label: 'DATA PRIVACY' },
     ];
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-50/95 backdrop-blur-sm p-4 sm:p-8">
             <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden min-h-[80vh] flex flex-col">
-                {/* Header */}
-                <div className="bg-slate-900 text-white px-8 py-6 flex justify-between items-center">
+                {/* Strict Header */}
+                <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">How BioSphere Works</h2>
-                        <p className="text-indigo-300 mt-1">Transparency regarding our analysis logic, compliance, and privacy.</p>
+                        <h2 className="text-sm font-semibold tracking-wide text-slate-900 uppercase">Analysis Methodology</h2>
+                        <p className="text-[10px] uppercase font-mono tracking-widest text-slate-500 mt-1">Verification protocols & biosecurity standards</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                        className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-800 transition-colors"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        Close [Esc]
                     </button>
                 </div>
 
                 {/* Navigation */}
-                <div className="flex border-b border-slate-200 bg-slate-50">
+                <div className="flex border-b border-slate-200 bg-slate-100">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all ${activeTab === tab.id
-                                ? 'bg-white text-indigo-600 border-b-2 border-indigo-600 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                            className={`flex-1 py-1 px-4 text-[10px] h-10 font-semibold tracking-wider flex items-center justify-center transition-all ${activeTab === tab.id
+                                ? 'bg-white text-blue-600 border-x border-slate-200 font-bold'
+                                : 'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
-                            <span className="text-lg">{tab.icon}</span>
                             {tab.label}
                         </button>
                     ))}
@@ -232,15 +229,15 @@ export function Documentation({ onClose }) {
                                             Once analysis is complete and you close your session, the data is flushed from our working memory.
                                         </p>
                                     </div>
-                                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
-                                        <h4 className="font-bold text-slate-900 mb-2">🛡️ Local Caching Only</h4>
+                                    <div className="bg-slate-50 p-4 rounded-md border border-slate-100">
+                                        <h4 className="font-bold text-slate-900 mb-1">Local Caching Only</h4>
                                         <p className="text-sm text-slate-600">
                                             "Instant Results" are powered by your own browser's local storage.
                                             This cache lives on <strong>your device</strong>, not our servers. You can clear it anytime by clearing browser data.
                                         </p>
                                     </div>
-                                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
-                                        <h4 className="font-bold text-slate-900 mb-2">📡 Secure Proxying</h4>
+                                    <div className="bg-slate-50 p-4 rounded-md border border-slate-100">
+                                        <h4 className="font-bold text-slate-900 mb-1">Secure Proxying</h4>
                                         <p className="text-sm text-slate-600">
                                             When querying NCBI, we act as a blind proxy. We forward the sequence for analysis and return the result.
                                             NCBI's own privacy policy applies to the search queries processed on their cloud.

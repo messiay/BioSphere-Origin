@@ -97,8 +97,6 @@ export function LandingPage({ onProceed }) {
                     <span className="text-sm font-bold tracking-tight leading-none text-slate-800">BioSphere</span>
                 </div>
                 <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                    <a href="#threats" className="hover:text-indigo-600 transition-colors">Risk Vectors</a>
-                    <a href="#compliance" className="hover:text-indigo-600 transition-colors">Compliance</a>
                 </div>
             </nav>
 

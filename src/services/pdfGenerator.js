@@ -11,7 +11,7 @@ export const PdfGenerator = {
             // --- PAGE 1: HEADER & PATENTS ---
             
             // Header
-            let headerColor = [30, 41, 59]; // Dark slate
+            let headerColor = [79, 70, 229]; // Indigo Theme (#4F46E5)
             if (biopiracyData?.isIndian) headerColor = [153, 27, 27]; // Red
             
             doc.setFillColor(...headerColor);
@@ -34,9 +34,9 @@ export const PdfGenerator = {
             doc.text(`Length:        ${metadata.length} bp`, 14, 52);
 
             // Risk Box (Top Right)
-            let riskColor = [34, 197, 94]; // Green
+            let riskColor = [0, 128, 0]; // Green (#008000)
             if (risk.riskLevel === 'RED') riskColor = [239, 68, 68];
-            if (risk.riskLevel === 'YELLOW') riskColor = [234, 179, 8];
+            if (risk.riskLevel === 'YELLOW') riskColor = [255, 222, 33]; // Yellow (#FFDE21)
 
             doc.setFillColor(248, 250, 252);
             doc.setDrawColor(...riskColor);
@@ -53,13 +53,13 @@ export const PdfGenerator = {
             doc.text(risk.status, 168, 53, { align: 'center' });
 
             // Sovereignty Box (Bottom Right of Summary)
-            let sovColor = [34, 197, 94]; // Green
+            let sovColor = [0, 128, 0]; // Green (#008000)
             let sovText = "CLEARED / CERTIFIED";
             if (biopiracyData?.isIndian) {
                 sovColor = [220, 38, 38];
                 sovText = "NBA RESTRICTED";
             } else if (!isCertifiedNonIndian) {
-                sovColor = [234, 179, 8];
+                sovColor = [255, 222, 33]; // Yellow (#FFDE21)
                 sovText = "PENDING DISCLOSURE";
             }
 
@@ -74,7 +74,7 @@ export const PdfGenerator = {
 
             // Section 1: Global Patent Matches
             doc.setFontSize(12);
-            doc.setTextColor(30, 41, 59);
+            doc.setTextColor(79, 70, 229); // Indigo Theme
             doc.setFont('helvetica', 'bold');
             doc.text('Section 1: Global Patent Matches (NCBI pat)', 14, 70);
 
@@ -92,7 +92,7 @@ export const PdfGenerator = {
                     head: [['Patent Title', 'ID', 'Identity', 'Matches', 'Status']],
                     body: patentRows,
                     theme: 'striped',
-                    headStyles: { fillColor: [30, 41, 59], fontSize: 8 },
+                    headStyles: { fillColor: [79, 70, 229], fontSize: 8 },
                     styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' },
                     columnStyles: {
                         0: { cellWidth: 85 },
@@ -117,7 +117,7 @@ export const PdfGenerator = {
             doc.addPage();
 
             // Section 2: Global Biological Matches
-            doc.setFillColor(30, 41, 59);
+            doc.setFillColor(79, 70, 229); // Indigo Theme
             doc.rect(0, 0, 210, 15, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(12);
@@ -139,7 +139,7 @@ export const PdfGenerator = {
                     head: [['Organism / Sequence', 'Accession', 'Identity', 'Matches']],
                     body: bioRows,
                     theme: 'striped',
-                    headStyles: { fillColor: [71, 85, 105], fontSize: 8 },
+                    headStyles: { fillColor: [79, 70, 229], fontSize: 8 },
                     styles: { fontSize: 7, cellPadding: 2 },
                     columnStyles: {
                         0: { cellWidth: 'auto' },
@@ -159,12 +159,12 @@ export const PdfGenerator = {
 
             // Section 3: Regulatory Compliance Audit
             doc.setFontSize(12);
-            doc.setTextColor(30, 41, 59);
+            doc.setTextColor(79, 70, 229); // Indigo Theme
             doc.setFont('helvetica', 'bold');
             doc.text('Section 3: Regulatory Compliance Audit (India SCOMET)', 14, page2Y);
 
             if (compliance) {
-                const statusColor = compliance.status === 'RESTRICTED' ? [239, 68, 68] : [71, 85, 105];
+                const statusColor = compliance.status === 'RESTRICTED' ? [239, 68, 68] : [79, 70, 229];
                 doc.setDrawColor(...statusColor);
                 doc.setLineWidth(0.5);
                 doc.line(14, page2Y + 2, 196, page2Y + 2);
@@ -172,10 +172,12 @@ export const PdfGenerator = {
                 const drawRow = (label, value, y) => {
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(71, 85, 105);
+                    doc.setTextColor(79, 70, 229); // Indigo Theme
                     doc.text(label, 14, y);
                     doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(30, 41, 59);
+                    doc.setTextColor(30, 41, 59); // Keep values dark for readability or use a slightly faded indigo
+                    // Using dark slate for values as in the UI text is generally dark/black for contrast
+                    doc.setTextColor(40, 40, 40);
                     const wrappedValue = doc.splitTextToSize(value || 'N/A', 130);
                     doc.text(wrappedValue, 65, y);
                     return y + (wrappedValue.length * 4.5);

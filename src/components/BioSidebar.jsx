@@ -65,17 +65,7 @@ export function BioSidebar() {
                 </svg>
             )
         },
-        { 
-            id: 'risk-key',
-            label: 'Risk Score Key',
-            icon: (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2l9 4.5v11L12 22l-9-4.5v-11L12 2z"></path>
-                    <polyline points="12 22 12 12 21 7.5"></polyline>
-                    <polyline points="12 12 3 7.5"></polyline>
-                </svg>
-            )
-        },
+
     ];
 
     const navClick = (id) => {
@@ -100,9 +90,7 @@ export function BioSidebar() {
                         onClick={() => navClick(item.id)}
                     />
                 ))}
-                <div className="mt-auto text-[9px] font-bold text-slate-400 text-center tracking-widest pb-4">
-                    V2.2
-                </div>
+
             </div>
 
             {/* ── Slide-out Panel ─────────── */}
@@ -139,19 +127,7 @@ export function BioSidebar() {
                             </a>
                         ))}
 
-                        {activePanel === 'risk-key' && (
-                            <div className="space-y-2">
-                                {RISK_LEVELS.map((lvl, i) => (
-                                    <div key={i} className="p-4 bg-white border border-slate-100 border-l-4 rounded-r-lg" style={{ borderLeftColor: lvl.color }}>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: lvl.color }}>{lvl.label}</span>
-                                            <span className="text-[9px] font-mono font-bold bg-slate-50 px-2 py-0.5 rounded text-slate-500 border border-slate-100">{lvl.score}</span>
-                                        </div>
-                                        <p className="text-[11px] text-slate-600 leading-snug font-medium">{lvl.desc}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+
                     </div>
                 </div>
             )}

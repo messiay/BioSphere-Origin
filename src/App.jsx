@@ -9,6 +9,7 @@ import { BiopiracyGate } from './components/BiopiracyGate';
 import { BioSidebar } from './components/BioSidebar';
 import { GlobalAnalysisReport } from './components/GlobalAnalysisReport';
 import { LandingPage } from './components/LandingPage';
+import { AnalysisHistory } from './components/AnalysisHistory';
 import AnalysisWorker from './workers/analysis.worker.js?worker';
 import { BlastService } from './services/blast';
 import { PdfGenerator } from './services/pdfGenerator';
@@ -44,6 +45,15 @@ function App() {
         const saved = localStorage.getItem('bio_notifications_muted');
         return saved ? JSON.parse(saved) : false;
     });
+
+    const [analysisHistory, setAnalysisHistory] = useState(() => {
+        const saved = localStorage.getItem('bio_analysis_history');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    useEffect(() => {
+        localStorage.setItem('bio_analysis_history', JSON.stringify(analysisHistory));
+    }, [analysisHistory]);
 
     useEffect(() => {
         localStorage.setItem('bio_notifications_muted', JSON.stringify(isMuted));
@@ -250,6 +260,21 @@ function App() {
                 NotificationService.playSuccessChime();
             }
 
+            // Save to History
+            const historyItem = {
+                id: hashResult,
+                hash: hashResult,
+                riskScore: finalRisk.overallScore,
+                timestamp: timestamp,
+                label: (mappedOrganisms[0]?.title || mappedOrganisms[0]?.species || 'Novel Sequence').substring(0, 40),
+                fullResult: finalResult
+            };
+
+            setAnalysisHistory(prev => {
+                const filtered = prev.filter(item => item.hash !== hashResult);
+                return [historyItem, ...filtered].slice(0, 20);
+            });
+
         } catch (err) {
             console.error("Analysis Error:", err);
             alert("Universal Search Failed: " + (err.message || "Unknown error"));
@@ -314,6 +339,19 @@ function App() {
         setIsCertifiedNonIndian(false);
     };
 
+    const handleLoadFromHistory = (item) => {
+        setResult(item.fullResult);
+        setComplianceReport(item.fullResult.complianceReport || { passedChecks: item.fullResult.compliance?.passedChecks || 4, totalChecks: 4 });
+        setBiopiracyData(item.fullResult.biopiracyData || { isIndian: false, hasForeignVC: null, status: 'NOT_CHECKED' });
+        setIsCertifiedNonIndian(false);
+    };
+
+    const handleClearHistory = () => {
+        if (window.confirm('Clear all cached analysis results?')) {
+            setAnalysisHistory([]);
+        }
+    };
+
     // Render Landing Page
     if (!showTerminal) {
         return <LandingPage onProceed={() => setShowTerminal(true)} />;
@@ -326,7 +364,7 @@ function App() {
                     <div className="flex items-center justify-center w-8 h-8 rounded text-white font-black text-sm font-mono tracking-tighter" style={{backgroundColor: 'var(--bio-indigo)'}}>BP</div>
                     <div>
                         <h1 className="text-sm font-bold tracking-tight leading-none text-slate-800">BioSphere</h1>
-                        <p className="text-[10px] text-slate-500 font-mono font-bold uppercase tracking-widest mt-0.5 leading-none">Origin Alpha v2.2.0</p>
+
                     </div>
                 </div>
 
@@ -365,17 +403,13 @@ function App() {
                                 {/* Configuration Panel */}
                                 <div className="md:col-span-4 space-y-6">
                                     <div className="bench-panel overflow-hidden h-fit">
-                                        <div className="px-5 py-3 flex items-center gap-3 bg-slate-50 border-b border-slate-200">
-                                            <div className="w-2 h-2 rounded-full bg-slate-300 animate-pulse"></div>
-                                            <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">System Configuration</h2>
-                                        </div>
+
                                         <div className="p-6 space-y-6">
                                             <div>
                                                 <div className="flex flex-col gap-2">
                                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Compliance Jurisdiction</span>
-                                                    <div className="flex items-center gap-3 mt-1">
-                                                        <span className="font-mono text-[10px] font-bold text-white px-2 py-0.5 rounded" style={{backgroundColor: 'var(--bio-indigo)'}}>IN/SCOMET/NBA</span>
-                                                        <span className="text-sm font-semibold text-slate-700">Republic of India</span>
+                                                    <div className="flex items-center mt-1">
+                                                        <span className="text-sm font-semibold text-slate-700">India</span>
                                                     </div>
                                                 </div>
                                                 <p className="text-[11px] text-slate-500 mt-4 leading-relaxed font-medium">
@@ -383,14 +417,16 @@ function App() {
                                                 </p>
                                             </div>
 
-                                            <div className="pt-4 border-t border-slate-100">
-                                                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400 uppercase font-bold">
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
-                                                    GATEWAY: ACTIVE
-                                                </div>
-                                            </div>
+
                                         </div>
                                     </div>
+
+                                    {/* Analysis History */}
+                                    <AnalysisHistory 
+                                        history={analysisHistory} 
+                                        onLoad={handleLoadFromHistory}
+                                        onClear={handleClearHistory}
+                                    />
                                 </div>
 
                                 {/* Main Interaction Area */}
@@ -406,7 +442,6 @@ function App() {
                                     <div className="flex justify-between items-end mb-6">
                                         <div className="text-left">
                                             <h3 className="text-lg font-bold text-slate-800 font-mono tracking-tighter uppercase">Initializing Analysis</h3>
-                                            <p className="text-[10px] text-indigo-600 font-mono font-bold mt-1">PROTOCOL: BIO-ALPHA-9</p>
                                         </div>
                                         <span className="text-4xl font-black font-mono tracking-tighter text-slate-800">{progress}<span className="text-lg opacity-30">%</span></span>
                                     </div>
@@ -448,13 +483,11 @@ function App() {
             <footer className="bg-white border-t border-slate-200 mt-auto">
                 <div className="max-w-7xl mx-auto px-8 py-6 text-center text-[10px] text-slate-500 flex flex-col items-center gap-3">
                     <div className="flex justify-center space-x-10 font-bold uppercase tracking-widest">
-                        <a href="#" className="hover:text-indigo-600 transition-colors">Security Protocol</a>
-                        <a href="#" className="hover:text-indigo-600 transition-colors">Compliance Nodes</a>
-                        <a href="#" className="hover:text-indigo-600 transition-colors">API Endpoint</a>
+
                     </div>
                     <div className="flex items-center gap-3 opacity-60">
                         <div className="w-4 h-4 rounded flex items-center justify-center text-white text-[8px] font-black" style={{backgroundColor: 'var(--bio-indigo)'}}>BP</div>
-                        <p className="font-semibold uppercase tracking-tighter">© 2026 BioSphere Systems Inc. · Neural Genesis Cluster · Singapore/Chennai</p>
+                        <p className="font-semibold uppercase tracking-tighter">© 2026 BioSphere</p>
                     </div>
                 </div>
             </footer>

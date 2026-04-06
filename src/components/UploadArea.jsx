@@ -4,6 +4,7 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
     const [textInput, setTextInput] = useState('');
     const [sanitationError, setSanitationError] = useState('');
     const [dragActive, setDragActive] = useState(false);
+    const [isDisclaimerAccepted, setIsDisclaimerAccepted] = useState(false);
 
     const sanitizeSequence = (input) => {
         // DEV TEST HOOK: allow __TEST_AMBIGUITY__ prefix to pass through
@@ -155,19 +156,62 @@ export function UploadArea({ onAnalyze, isAnalyzing }) {
                         spellCheck={false}
                     ></textarea>
 
-                    <div className="flex justify-end pt-5 border-t border-slate-100">
-                        <button
-                            onClick={handleManualSubmit}
-                            disabled={isAnalyzing || !textInput}
-                            className={`btn-primary px-10 py-3 uppercase tracking-[0.15em] text-[10px] flex items-center gap-3 ${isAnalyzing || !textInput ? 'opacity-40 grayscale' : ''}`}
-                        >
-                            {isAnalyzing ? (
-                                <>
-                                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Processing...
-                                </>
-                            ) : "Execute Analysis Protocol"}
-                        </button>
+                    <div className="space-y-6">
+                        {/* Legal Disclaimer Panel */}
+                        <div className="p-5 rounded-lg bg-red-50/50 border border-red-100 flex flex-col gap-4">
+                            <div className="flex items-center gap-2 text-red-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Legal & Regulatory Disclaimer</span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black uppercase tracking-tight text-red-800/70">1. Point-in-Time Accuracy</p>
+                                    <p className="text-[9px] text-red-900/60 leading-relaxed font-medium">Database records are subject to latency, omissions, and retroactive updates. This report represents a snapshot in time.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black uppercase tracking-tight text-red-800/70">2. Not Legal Advice</p>
+                                    <p className="text-[9px] text-red-900/60 leading-relaxed font-medium">Risk Scores and 'Clear' statuses are for R&D triaging only and do not constitute formal legal advice or FTO opinion.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black uppercase tracking-tight text-red-800/70">3. Source Limitations</p>
+                                    <p className="text-[9px] text-red-900/60 leading-relaxed font-medium">This analysis does not evaluate the active enforcement status of corporate patents via paid databases (e.g., PatSeq).</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black uppercase tracking-tight text-red-800/70">4. Limitation of Liability</p>
+                                    <p className="text-[9px] text-red-900/60 leading-relaxed font-medium">Bio-Provenance and founders assume zero liability for direct or indirect damages, litigation, or loss arising from reliance on this software.</p>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-red-100 flex items-center gap-3">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isDisclaimerAccepted}
+                                        onChange={(e) => setIsDisclaimerAccepted(e.target.checked)}
+                                        className="h-4 w-4 rounded border-red-200 text-red-600 focus:ring-red-500 transition-all cursor-pointer"
+                                    />
+                                    <span className="text-[10px] font-bold text-red-800 group-hover:text-red-900 transition-colors uppercase tracking-tight">
+                                        I have read and agree to the Bio-Provenance Legal Disclaimer
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-5 border-t border-slate-100">
+                            <button
+                                onClick={handleManualSubmit}
+                                disabled={isAnalyzing || !textInput || !isDisclaimerAccepted}
+                                className={`btn-primary px-10 py-3 uppercase tracking-[0.15em] text-[10px] flex items-center gap-3 ${isAnalyzing || !textInput || !isDisclaimerAccepted ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:scale-[1.02] active:scale-95 transition-all'}`}
+                            >
+                                {isAnalyzing ? (
+                                    <>
+                                        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        Processing...
+                                    </>
+                                ) : "Execute"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

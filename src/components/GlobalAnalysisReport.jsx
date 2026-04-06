@@ -83,7 +83,6 @@ export function GlobalAnalysisReport({
                         <div className="w-1 h-6 bg-indigo-600 rounded-full"></div>
                         <h2 className="text-2xl font-black tracking-tight text-slate-800">Global Analysis Report</h2>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium ml-4 uppercase tracking-tighter">Diagnostic Matrix: NCBI/WIPO Hybrid Cloud Engine</p>
                     <div className="flex items-center gap-3 mt-3 ml-4">
                         <div className="flex items-center gap-2 text-[9px] font-mono text-slate-400 bg-slate-50 px-2 py-1 rounded border border-slate-100">
                             <span className="font-bold opacity-50 uppercase">Timestamp:</span> {new Date(result.timestamp || Date.now()).toLocaleString()}
@@ -127,56 +126,7 @@ export function GlobalAnalysisReport({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                {/* ── MATCH SPECTRUM ─────────────────────────────────── */}
                 <div className="md:col-span-7 space-y-8">
-                    <div className="bench-panel overflow-hidden">
-                        <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Biological Match Spectrum</h3>
-                            <span className="text-[9px] font-mono text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200 uppercase font-bold tracking-widest px-2">NCBI:GENBANK:NT</span>
-                        </div>
-                        <div className="p-6">
-                            {organismMatches.length > 0 ? (
-                                <div className="space-y-3">
-                                    {organismMatches.slice(0, 6).map((match, i) => (
-                                        <div key={i} className="flex items-center justify-between p-4 bg-slate-50/50 border border-slate-100 rounded-lg group hover:border-indigo-200 hover:bg-white transition-all">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded bg-white flex flex-col items-center justify-center border border-slate-200 shadow-sm">
-                                                    <span className="text-[9px] font-black text-slate-300 uppercase leading-none">PCT</span>
-                                                    <span className="text-xs font-black text-indigo-600 font-mono tracking-tighter mt-0.5">
-                                                        {Math.round(match.identityPercentage || match.identity || 0)}%
-                                                    </span>
-                                                </div>
-                                                <div className="max-w-[340px]">
-                                                    <p className="text-xs font-bold text-slate-800 leading-tight mb-1 line-clamp-1">
-                                                        {match.title || match.species}
-                                                    </p>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-[9px] font-mono text-slate-400 uppercase font-bold tracking-tighter">TaxID:</span>
-                                                            <span className="data-stamp text-[9px] font-bold">{match.taxid || match.taxId || 'N/A'}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-[9px] font-mono text-slate-400 uppercase font-bold tracking-tighter">ACC:</span>
-                                                            <span className="data-stamp text-[9px] font-bold">{match.accession || match.id || '---'}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">MATCHED</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-16">
-                                    <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-3 opacity-50 text-slate-400">
-                                        ⌬
-                                    </div>
-                                    <p className="text-slate-400 text-xs font-medium uppercase tracking-[0.1em]">No biological matches found — novel sequence.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
                     {/* ── GLOBAL PATENT MATCHES ─────────────────────────── */}
                     <div className="bench-panel overflow-hidden">
                         <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -222,10 +172,6 @@ export function GlobalAnalysisReport({
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="text-right shrink-0 ml-2">
-                                                    <div className="text-[9px] font-mono text-slate-400 uppercase">Score</div>
-                                                    <div className="text-xs font-black font-mono text-slate-700">{hit.score || '—'}</div>
-                                                </div>
                                             </div>
                                         );
                                     })}
@@ -235,6 +181,55 @@ export function GlobalAnalysisReport({
                                     <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-3 opacity-40 text-slate-400 text-lg font-mono">P</div>
                                     <p className="text-slate-400 text-xs font-medium uppercase tracking-[0.1em]">No matching patents found.</p>
                                     <p className="text-slate-300 text-[10px] font-mono mt-1">Clear for FTO purposes.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ── MATCH SPECTRUM ─────────────────────────────────── */}
+                    <div className="bench-panel overflow-hidden">
+                        <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Biological Match Spectrum</h3>
+                            <span className="text-[9px] font-mono text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200 uppercase font-bold tracking-widest px-2">NCBI:GENBANK:NT</span>
+                        </div>
+                        <div className="p-6">
+                            {organismMatches.length > 0 ? (
+                                <div className="space-y-3">
+                                    {organismMatches.slice(0, 6).map((match, i) => (
+                                        <div key={i} className="flex items-center justify-between p-4 bg-slate-50/50 border border-slate-100 rounded-lg group hover:border-indigo-200 hover:bg-white transition-all">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded bg-white flex flex-col items-center justify-center border border-slate-200 shadow-sm">
+                                                    <span className="text-[9px] font-black text-slate-300 uppercase leading-none">PCT</span>
+                                                    <span className="text-xs font-black text-indigo-600 font-mono tracking-tighter mt-0.5">
+                                                        {Math.round(match.identityPercentage || match.identity || 0)}%
+                                                    </span>
+                                                </div>
+                                                <div className="max-w-[340px]">
+                                                    <p className="text-xs font-bold text-slate-800 leading-tight mb-1 line-clamp-1">
+                                                        {match.title || match.species}
+                                                    </p>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-[9px] font-mono text-slate-400 uppercase font-bold tracking-tighter">TaxID:</span>
+                                                            <span className="data-stamp text-[9px] font-bold">{match.taxid || match.taxId || 'N/A'}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-[9px] font-mono text-slate-400 uppercase font-bold tracking-tighter">ACC:</span>
+                                                            <span className="data-stamp text-[9px] font-bold">{match.accession || match.id || '---'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">MATCHED</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-16">
+                                    <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-3 opacity-50 text-slate-400">
+                                        ⌬
+                                    </div>
+                                    <p className="text-slate-400 text-xs font-medium uppercase tracking-[0.1em]">No biological matches found — novel sequence.</p>
                                 </div>
                             )}
                         </div>
